@@ -96,7 +96,7 @@ The command used for the reported paper-epoch reproduction was:
 
 ```bash
 malware-seg run-all \
-  --data-dir /home/amirmahdi/.cache/kaggle/BIG2015/main \
+  --data-dir "$DATA_DIR" \
   --device cuda
 ```
 
