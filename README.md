@@ -113,9 +113,9 @@ Output images are saved to `./data/arm-only/artifacts/visualizations/`.
 
 ---
 
-## Running on Kaggle (3 Concurrent Instances)
+## Running on Kaggle (4 Concurrent Instances)
 
-To train models in parallel across 3 Kaggle GPU accounts or notebooks:
+To train models in parallel across 4 Kaggle GPU accounts or notebooks:
 
 1. Package the preprocessed `.npz` files:
    ```bash
@@ -129,19 +129,21 @@ To train models in parallel across 3 Kaggle GPU accounts or notebooks:
    *(Note: `kaggle_train.ipynb` is gitignored to keep the repository clean. The template is maintained in `kaggle_train.template.ipynb`.)*
 4. In Kaggle, import the generated `kaggle_train.ipynb` notebook, attach the dataset via **+ Add Input**, enable **GPU Accelerator (T4 x2 or P100)** and **Internet: On**.
 
-Each instance executes an assigned experiment preset:
+Each instance executes an assigned experiment preset (~2.5 hours each):
 
 | Instance | Goal | CLI Command |
 |---|---|---|
-| **Instance 1** | **Baselines**<br>• VGG16 & ResNet50<br>• Configs: `S1`, `S2`, `S3` | `malware-seg kaggle -i 1 --dataset arm_zephyr -e 20 -b 32` |
-| **Instance 2** | **3-Channel Section Separations**<br>• VGG16 & ResNet50<br>• `S4_text_rodata_data`, `S5_text_rodata_data`, `S5_imgs1024_text_data`, `S5_imgs1024_text_rodata` | `malware-seg kaggle -i 2 --dataset arm_zephyr -e 20 -b 32` |
-| **Instance 3** | **Multi-Channel (4 & 5 Channels)**<br>• ResNet50<br>• `S4 4-ch (raw)`, `S4 4-ch (rom_start)`, `S5 4-ch`, `S5 5-ch` | `malware-seg kaggle -i 3 --dataset arm_zephyr -e 20 -b 32` |
+| **Instance 1** | **Baselines (Raw Byte Layouts)**<br>• VGG16 & ResNet50<br>• Configs: `S1`, `S2`, `S3` | `malware-seg kaggle -i 1 --dataset arm_zephyr -e 20 -b 32` |
+| **Instance 2** | **3-Channel Section Separations (VGG16)**<br>• VGG16 only<br>• `S4_text_rodata_data`, `S5_text_rodata_data`, `S5_imgs1024_text_data`, `S5_imgs1024_text_rodata` | `malware-seg kaggle -i 2 --dataset arm_zephyr -e 20 -b 32` |
+| **Instance 3** | **3-Channel Section Separations (ResNet50)**<br>• ResNet50 only<br>• `S4_text_rodata_data`, `S5_text_rodata_data`, `S5_imgs1024_text_data`, `S5_imgs1024_text_rodata` | `malware-seg kaggle -i 3 --dataset arm_zephyr -e 20 -b 32` |
+| **Instance 4** | **Multi-Channel (4 & 5 Channels - ResNet50)**<br>• ResNet50 only<br>• `S4 4-ch (raw)`, `S4 4-ch (rom_start)`, `S5 4-ch`, `S5 5-ch` | `malware-seg kaggle -i 4 --dataset arm_zephyr -e 20 -b 32` |
 
 Alternatively, you can run directly via the shorthand runner script:
 ```bash
 python kaggle_runner.py -i 1 --dataset arm_zephyr -e 20 -b 32
 python kaggle_runner.py -i 2 --dataset arm_zephyr -e 20 -b 32
 python kaggle_runner.py -i 3 --dataset arm_zephyr -e 20 -b 32
+python kaggle_runner.py -i 4 --dataset arm_zephyr -e 20 -b 32
 ```
 
 ---
