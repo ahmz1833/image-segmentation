@@ -31,14 +31,14 @@ S1–S3 are replicated across three channels for standard backbone compatibility
 
 ## Supported Datasets & Configuration System
 
-Dataset metadata is decoupled into configuration files under `configs/`:
+Dataset metadata is decoupled into configuration files under `src/malware_segmentation/configs/`:
 
-### 1. Microsoft BIG 2015 (`configs/big2015.json`)
+### 1. Microsoft BIG 2015 (`src/malware_segmentation/configs/big2015.json`)
 - **Format**: Windows PE (`.bytes` and `.asm`)
 - **Classes (9)**: Ramnit, Lollipop, Kelihos_ver3, Vundo, Simda, Tracur, Kelihos_ver1, Obfuscator.ACY, Gatak (10,868 train / 10,873 test)
 - **Sections**: `.text`, `.rdata`, `.data`, `.rsrc`
 
-### 2. ARM Zephyr RTOS Embedded Malware (`configs/arm_zephyr.json`)
+### 2. ARM Zephyr RTOS Embedded Malware (`src/malware_segmentation/configs/arm_zephyr.json`)
 - **Format**: Linux ELF (`firmware.elf`)
 - **Classes (6)**: `benign`, `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like` (27,571 samples total)
 - **Sections**: `text` (code), `rodata` (constants), `data` (initialized data, aliased from `datas`), `rom_start` (ARM Cortex-M vector table), `initlevel`, `device_area`, `sw_isr_table`, `device_api_area`, `device_states`

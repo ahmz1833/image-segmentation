@@ -27,7 +27,7 @@ def create_code_zip_bytes(repo_dir: Path) -> bytes:
     """Package project sources and configurations into an in-memory zip."""
     zip_buffer = io.BytesIO()
 
-    include_dirs = ["src", "configs", "scripts"]
+    include_dirs = ["src", "scripts"]
     include_files = ["kaggle_runner.py", "pyproject.toml", "requirements.txt", "README.md"]
 
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
