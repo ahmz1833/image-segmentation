@@ -92,7 +92,7 @@ malware-seg configs vgg16
 malware-seg configs resnet50
 ```
 
-The command used for the reported paper-epoch reproduction was:
+To reproduce the reported paper-epoch experiments, run:
 
 ```bash
 malware-seg run-all \
