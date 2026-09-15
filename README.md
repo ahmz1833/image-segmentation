@@ -109,25 +109,6 @@ The best paper result is ResNet50/S3 with 0.0265 log loss. In the paper-epoch re
 
 See **[full results, comparisons, and training diagnostics](docs/results.md)**.
 
-## Repository layout
-
-```text
-.
-├── src/malware_segmentation/  # Python package and CLI implementation
-├── docs/                      # Results, supporting data, and documentation images
-│   ├── assets/
-│   ├── results.csv
-│   └── results.md
-├── paper/                     # Reference research paper
-│   └── paper.pdf
-├── pyproject.toml             # Package metadata and tool configuration
-├── requirements.txt           # Runtime dependencies
-└── requirements-dev.txt       # Development dependencies
-```
-
-Keep downloaded malware data and generated artifacts outside the repository by passing their
-location through `--data-dir`, as shown above.
-
 ## Output layout
 
 All runtime outputs are rooted at the selected `--data-dir`:
