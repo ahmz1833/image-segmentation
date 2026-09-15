@@ -40,7 +40,7 @@ Dataset metadata is decoupled into configuration files under `src/malware_segmen
 
 ### 2. ARM Zephyr RTOS Embedded Malware (`src/malware_segmentation/configs/arm_zephyr.json`)
 - **Format**: Linux ELF (`firmware.elf`)
-- **Classes (6)**: `benign`, `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like` (27,571 samples total)
+- **Classes (5)**: `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like` (25,970 malware samples across 5 families)
 - **Sections**: `text` (code), `rodata` (constants), `data` (initialized data, aliased from `datas`), `rom_start` (ARM Cortex-M vector table), `initlevel`, `device_area`, `sw_isr_table`, `device_api_area`, `device_states`
 
 To inspect supported channel configurations for any dataset:
