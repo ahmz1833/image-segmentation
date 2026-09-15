@@ -1,6 +1,6 @@
 # Malware Classification Based on Image Segmentation
 
-Reproducible PyTorch implementation of Wanhu Nie's 2024 paper, **[Malware Classification Based on Image Segmentation](paper.pdf)** ([arXiv:2406.03831](https://arxiv.org/abs/2406.03831)). The project converts the Microsoft Malware Classification Challenge (BIG 2015) byte streams into grayscale images, separates PE sections into image channels, fine-tunes VGG16 and ResNet50, and produces Kaggle-compatible probability submissions.
+Reproducible PyTorch implementation of Wanhu Nie's 2024 paper, **[Malware Classification Based on Image Segmentation](paper/paper.pdf)** ([arXiv:2406.03831](https://arxiv.org/abs/2406.03831)). The project converts the Microsoft Malware Classification Challenge (BIG 2015) byte streams into grayscale images, separates PE sections into image channels, fine-tunes VGG16 and ResNet50, and produces Kaggle-compatible probability submissions.
 
 > **Scope.** This is a static-analysis pipeline: it reads the `.bytes` and `.asm` files supplied by BIG 2015 and does not execute malware. The dataset is nevertheless untrusted research material; keep it outside the repository and handle it in an isolated environment.
 
@@ -107,7 +107,26 @@ malware-seg run-all \
 
 The best paper result is ResNet50/S3 with 0.0265 log loss. In the paper-epoch reproduction, the best Public score is 0.02341 and the best Private score is 0.03185, both from mixed S5 ResNet50 configurations.
 
-See **[full results, comparisons, and training diagnostics](RESULTS.md)**.
+See **[full results, comparisons, and training diagnostics](docs/results.md)**.
+
+## Repository layout
+
+```text
+.
+├── src/malware_segmentation/  # Python package and CLI implementation
+├── docs/                      # Results, supporting data, and documentation images
+│   ├── assets/
+│   ├── results.csv
+│   └── results.md
+├── paper/                     # Reference research paper
+│   └── paper.pdf
+├── pyproject.toml             # Package metadata and tool configuration
+├── requirements.txt           # Runtime dependencies
+└── requirements-dev.txt       # Development dependencies
+```
+
+Keep downloaded malware data and generated artifacts outside the repository by passing their
+location through `--data-dir`, as shown above.
 
 ## Output layout
 

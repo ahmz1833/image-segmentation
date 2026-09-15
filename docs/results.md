@@ -27,7 +27,7 @@ The competition metric is multi-class logarithmic loss; **lower is better**. Kag
 | ResNet50 | S5 (.text + .rdata + .data + .rsrc) | 99.93% | 0.0505 | **0.10811 / 0.10746** | 0.18355 / 0.15599 |
 | ResNet50 | S5 (.text + .rdata + .rsrc) | 99.95% | 0.0446 | **0.11357** / 0.11978 | 0.13806 / **0.11584** |
 
-![Paper and reproduction log-loss scores](docs/assets/logloss-comparison.png)
+![Paper and reproduction log-loss scores](assets/logloss-comparison.png)
 
 ## Main observations
 
@@ -49,10 +49,10 @@ The training code reports last-epoch training accuracy/loss, then evaluates the 
 | ResNet50/S5 (imgs-1024 + .text + .data), best Public | 15 | 99.9632% | 0.004347 | 1.0000 | 15.6 min |
 | ResNet50/S5 (imgs-1024 + .text + .rdata), best Private | 15 | 99.9816% | 0.004494 | 1.0000 | 15.4 min |
 
-![ResNet50 S3 training curves](docs/assets/resnet50-s3-training-curves.png)
+![ResNet50 S3 training curves](assets/resnet50-s3-training-curves.png)
 
-![ResNet50 S3 training-set confusion matrices](docs/assets/resnet50-s3-confusion-matrices.png)
+![ResNet50 S3 training-set confusion matrices](assets/resnet50-s3-confusion-matrices.png)
 
-The perfect post-training S3 confusion matrix and 99.954% last-epoch accuracy use different evaluation moments: the latter is accumulated while weights change, whereas the former uses the final frozen weights. Both remain training-set results. Detailed precision, recall, and F1 are in the generated `classification_report.csv`; a compact visualization is at [`docs/assets/resnet50-s3-per-class-metrics.png`](docs/assets/resnet50-s3-per-class-metrics.png).
+The perfect post-training S3 confusion matrix and 99.954% last-epoch accuracy use different evaluation moments: the latter is accumulated while weights change, whereas the former uses the final frozen weights. Both remain training-set results. Detailed precision, recall, and F1 are in the generated `classification_report.csv`; a compact visualization is at [`assets/resnet50-s3-per-class-metrics.png`](assets/resnet50-s3-per-class-metrics.png).
 
-[Back to README](README.md)
+[Back to README](../README.md)
