@@ -43,7 +43,7 @@ Dataset metadata is decoupled into configuration files under `src/malware_segmen
 - **Classes (5)**: `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like` (25,970 malware samples across 5 families, excluding `benign`)
 - **Sections**: `text` (code), `rodata` (constants), `data` (initialized data, aliased from `datas`), `rom_start` (ARM Cortex-M vector table), `initlevel`, `device_area`, `sw_isr_table`, `device_api_area`, `device_states`
 
-### 3. ARM Zephyr Optimized (`src/malware_segmentation/configs/arm_zephyr_optimized.json`) - *Recommended*
+### 3. ARM Zephyr Optimized (`src/malware_segmentation/configs/arm_zephyr_optimized.json`)
 - **Format**: Linux ELF (`firmware.elf`)
 - **Classes (6)**: `benign`, `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like`
 - **Inverse-Frequency Balanced Sampling**: `"weighted_sampling": true` via PyTorch `WeightedRandomSampler`
@@ -52,15 +52,20 @@ Dataset metadata is decoupled into configuration files under `src/malware_segmen
 - **Training Epochs**: `"epochs": 30`
 - **rodata-Centric Multi-Scale Channels**: Combines global macro structure (`S3_1024`), narrow layout (`S1`), and payload-rich firmware sections (`.rodata`, `.data`, `.initlevel`, `device_area`).
 
+### 4. ARM Zephyr Optimized with PPM (`src/malware_segmentation/configs/arm_zephyr_optimized_ppm.json`) - *Recommended*
+- Everything in `arm_zephyr_optimized` PLUS:
+- **Pyramid Pooling Module (PPM)**: `"use_ppm": true` (Multi-scale spatial pooling across $1\times 1, 2\times 2, 3\times 3, 6\times 6$ bins)
+- **On-The-Fly Texture Filter Permutations**: Includes `S3_raw_lbp_gabor` (Raw + LBP + Gabor), `S5_imgs1024_rodata_lbp`, `S5_imgs1024_rodata_gabor`, and 4-channel hybrid `S5_imgs1024_rodata_lbp_gabor_4_channels` computed in memory with **zero dataset changes**.
+
 To inspect supported channel configurations for any dataset:
 ```bash
 # BIG 2015 (default)
 malware-seg configs vgg16
 malware-seg configs resnet50
 
-# ARM Zephyr ELF (Optimized)
-malware-seg configs vgg16 --dataset arm_zephyr_optimized
-malware-seg configs resnet50 --dataset arm_zephyr_optimized
+# ARM Zephyr ELF (Optimized with PPM)
+malware-seg configs vgg16 --dataset arm_zephyr_optimized_ppm
+malware-seg configs resnet50 --dataset arm_zephyr_optimized_ppm
 ```
 
 ---
@@ -148,20 +153,22 @@ Each instance executes an assigned experiment preset:
 | **Instance 4** | **Multi-Channel (4 & 5 Channels - ResNet50)**<br>• ResNet50 only<br>• `S4 4-ch (raw)`, `S4 4-ch (rom_start)`, `S5 4-ch`, `S5 5-ch` | `malware-seg kaggle -i 4 --dataset arm_zephyr -e 20 -b 32` |
 
 ### Dataset & Optimization Options:
-- **`--dataset arm_zephyr_optimized`** (*Recommended*): 6 classes (including `benign`). Automatically enables weighted sampling, cosine annealing LR scheduling, label smoothing (0.05), and runs 30 epochs with the expanded rodata-rich multi-scale channels.
+- **`--dataset arm_zephyr_optimized_ppm`** (*Recommended*): 6 classes (including `benign`). Automatically enables Pyramid Pooling Module (**PPM**), weighted sampling, cosine annealing LR scheduling, label smoothing (0.05), and supports all rodata and on-the-fly texture channels (`S3_raw_lbp_gabor`, `S5_imgs1024_rodata_lbp`, etc.).
+- **`--dataset arm_zephyr_optimized`**: 6 classes (including `benign`), standard pooling, weighted sampling, cosine annealing, label smoothing.
 - **`--dataset arm_zephyr_weighted`**: 6 classes (including `benign`) with inverse-frequency weighted random sampling.
 - **`--dataset arm_zephyr`**: 5 pure malware families (`backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like`). `benign` samples are filtered out on load without modifying files.
+- **`--ppm` / `--no-ppm`**: CLI flag to force enable or disable Pyramid Pooling Module (PPM) after the CNN backbone.
 - **`--weighted-sampling` / `--no-weighted-sampling`**: CLI flag to force enable or disable weighted random sampling independently of the dataset config default.
 - **`--label-smoothing <float>`**: Override label smoothing epsilon for CrossEntropyLoss (e.g. `0.05`, default `0.0` or config default).
 - **`--scheduler {cosine,exponential,none}`**: Override learning rate scheduler (`cosine`, `exponential`, `none`).
 
 Alternatively, you can run directly via the shorthand runner script:
 ```bash
-# Run optimized training on Kaggle Instance 1:
-python kaggle_runner.py -i 1 --dataset arm_zephyr_optimized
+# Run PPM-optimized training on Kaggle Instance 1:
+python kaggle_runner.py -i 1 --dataset arm_zephyr_optimized_ppm
 
 # Or customize flags explicitly:
-python kaggle_runner.py -i 2 --dataset arm_zephyr_optimized --scheduler cosine --label-smoothing 0.05
+python kaggle_runner.py -i 2 --dataset arm_zephyr_optimized_ppm --ppm --scheduler cosine --label-smoothing 0.05
 ```
 
 ---
