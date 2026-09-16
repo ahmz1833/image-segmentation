@@ -40,8 +40,17 @@ Dataset metadata is decoupled into configuration files under `src/malware_segmen
 
 ### 2. ARM Zephyr RTOS Embedded Malware (`src/malware_segmentation/configs/arm_zephyr.json`)
 - **Format**: Linux ELF (`firmware.elf`)
-- **Classes (5)**: `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like` (25,970 malware samples across 5 families)
+- **Classes (5)**: `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like` (25,970 malware samples across 5 families, excluding `benign`)
 - **Sections**: `text` (code), `rodata` (constants), `data` (initialized data, aliased from `datas`), `rom_start` (ARM Cortex-M vector table), `initlevel`, `device_area`, `sw_isr_table`, `device_api_area`, `device_states`
+
+### 3. ARM Zephyr Optimized (`src/malware_segmentation/configs/arm_zephyr_optimized.json`) - *Recommended*
+- **Format**: Linux ELF (`firmware.elf`)
+- **Classes (6)**: `benign`, `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like`
+- **Inverse-Frequency Balanced Sampling**: `"weighted_sampling": true` via PyTorch `WeightedRandomSampler`
+- **Cosine Annealing LR**: `"scheduler_type": "cosine"` (`CosineAnnealingLR(T_max=epochs, eta_min=1e-5)`)
+- **Label Smoothing Regularization**: `"label_smoothing": 0.05` to prevent overconfidence
+- **Training Epochs**: `"epochs": 30`
+- **rodata-Centric Multi-Scale Channels**: Combines global macro structure (`S3_1024`), narrow layout (`S1`), and payload-rich firmware sections (`.rodata`, `.data`, `.initlevel`, `device_area`).
 
 To inspect supported channel configurations for any dataset:
 ```bash
@@ -49,9 +58,9 @@ To inspect supported channel configurations for any dataset:
 malware-seg configs vgg16
 malware-seg configs resnet50
 
-# ARM Zephyr ELF
-malware-seg configs vgg16 --dataset arm_zephyr
-malware-seg configs resnet50 --dataset arm_zephyr
+# ARM Zephyr ELF (Optimized)
+malware-seg configs vgg16 --dataset arm_zephyr_optimized
+malware-seg configs resnet50 --dataset arm_zephyr_optimized
 ```
 
 ---
@@ -138,20 +147,21 @@ Each instance executes an assigned experiment preset:
 | **Instance 3** | **3-Channel Section Separations (ResNet50)**<br>• ResNet50 only<br>• `S4_text_rodata_data`, `S5_text_rodata_data`, `S5_imgs1024_text_data`, `S5_imgs1024_text_rodata` | `malware-seg kaggle -i 3 --dataset arm_zephyr -e 20 -b 32` |
 | **Instance 4** | **Multi-Channel (4 & 5 Channels - ResNet50)**<br>• ResNet50 only<br>• `S4 4-ch (raw)`, `S4 4-ch (rom_start)`, `S5 4-ch`, `S5 5-ch` | `malware-seg kaggle -i 4 --dataset arm_zephyr -e 20 -b 32` |
 
-### Dataset & Sampling Options:
-- **`--dataset arm_zephyr`** (Default): 5 pure malware families (`backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like`). Benign samples are automatically filtered out on load without needing to modify or redeploy raw files.
-- **`--dataset arm_zephyr_weighted`**: 6 classes (including `benign`). Automatically enables PyTorch `WeightedRandomSampler` during training to normalize class sampling probabilities and prevent minority class suppression.
+### Dataset & Optimization Options:
+- **`--dataset arm_zephyr_optimized`** (*Recommended*): 6 classes (including `benign`). Automatically enables weighted sampling, cosine annealing LR scheduling, label smoothing (0.05), and runs 30 epochs with the expanded rodata-rich multi-scale channels.
+- **`--dataset arm_zephyr_weighted`**: 6 classes (including `benign`) with inverse-frequency weighted random sampling.
+- **`--dataset arm_zephyr`**: 5 pure malware families (`backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like`). `benign` samples are filtered out on load without modifying files.
 - **`--weighted-sampling` / `--no-weighted-sampling`**: CLI flag to force enable or disable weighted random sampling independently of the dataset config default.
+- **`--label-smoothing <float>`**: Override label smoothing epsilon for CrossEntropyLoss (e.g. `0.05`, default `0.0` or config default).
+- **`--scheduler {cosine,exponential,none}`**: Override learning rate scheduler (`cosine`, `exponential`, `none`).
 
 Alternatively, you can run directly via the shorthand runner script:
 ```bash
-python kaggle_runner.py -i 1 --dataset arm_zephyr -e 20 -b 32
-python kaggle_runner.py -i 2 --dataset arm_zephyr -e 20 -b 32
-python kaggle_runner.py -i 3 --dataset arm_zephyr -e 20 -b 32
-python kaggle_runner.py -i 4 --dataset arm_zephyr -e 20 -b 32
+# Run optimized training on Kaggle Instance 1:
+python kaggle_runner.py -i 1 --dataset arm_zephyr_optimized
 
-# Or train 6 classes with weighted random sampling:
-python kaggle_runner.py -i 1 --dataset arm_zephyr_weighted -e 20 -b 32
+# Or customize flags explicitly:
+python kaggle_runner.py -i 2 --dataset arm_zephyr_optimized --scheduler cosine --label-smoothing 0.05
 ```
 
 ---
