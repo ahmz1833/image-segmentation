@@ -129,7 +129,7 @@ To train models in parallel across 4 Kaggle GPU accounts or notebooks:
    *(Note: `kaggle_train.ipynb` is gitignored to keep the repository clean. The template is maintained in `kaggle_train.template.ipynb`.)*
 4. In Kaggle, import the generated `kaggle_train.ipynb` notebook, attach the dataset via **+ Add Input**, enable **GPU Accelerator (T4 x2 or P100)** and **Internet: On**.
 
-Each instance executes an assigned experiment preset (~2.5 hours each):
+Each instance executes an assigned experiment preset:
 
 | Instance | Goal | CLI Command |
 |---|---|---|
@@ -138,12 +138,20 @@ Each instance executes an assigned experiment preset (~2.5 hours each):
 | **Instance 3** | **3-Channel Section Separations (ResNet50)**<br>• ResNet50 only<br>• `S4_text_rodata_data`, `S5_text_rodata_data`, `S5_imgs1024_text_data`, `S5_imgs1024_text_rodata` | `malware-seg kaggle -i 3 --dataset arm_zephyr -e 20 -b 32` |
 | **Instance 4** | **Multi-Channel (4 & 5 Channels - ResNet50)**<br>• ResNet50 only<br>• `S4 4-ch (raw)`, `S4 4-ch (rom_start)`, `S5 4-ch`, `S5 5-ch` | `malware-seg kaggle -i 4 --dataset arm_zephyr -e 20 -b 32` |
 
+### Dataset & Sampling Options:
+- **`--dataset arm_zephyr`** (Default): 5 pure malware families (`backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like`). Benign samples are automatically filtered out on load without needing to modify or redeploy raw files.
+- **`--dataset arm_zephyr_weighted`**: 6 classes (including `benign`). Automatically enables PyTorch `WeightedRandomSampler` during training to normalize class sampling probabilities and prevent minority class suppression.
+- **`--weighted-sampling` / `--no-weighted-sampling`**: CLI flag to force enable or disable weighted random sampling independently of the dataset config default.
+
 Alternatively, you can run directly via the shorthand runner script:
 ```bash
 python kaggle_runner.py -i 1 --dataset arm_zephyr -e 20 -b 32
 python kaggle_runner.py -i 2 --dataset arm_zephyr -e 20 -b 32
 python kaggle_runner.py -i 3 --dataset arm_zephyr -e 20 -b 32
 python kaggle_runner.py -i 4 --dataset arm_zephyr -e 20 -b 32
+
+# Or train 6 classes with weighted random sampling:
+python kaggle_runner.py -i 1 --dataset arm_zephyr_weighted -e 20 -b 32
 ```
 
 ---
