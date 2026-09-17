@@ -1,0 +1,84 @@
+
+% -------------------------------------------------------
+%  Custom Definitions
+% -------------------------------------------------------
+
+
+\newcommand{\OPT}{\ensuremath{\mathop{\mathrm{OPT}}}}
+\newcommand{\APX}{\ensuremath{\mathop{\mathrm{APX}}}}
+\newcommand{\ALG}{\ensuremath{\mathop{\mathrm{ALG}}}}
+
+\renewcommand{\bibname}{مراجع}
+
+% -------------------------------------------------------
+%  Persian numerals: force LTR run so that the decimal
+%  separator (٫) and the thousands separator (٬) do not
+%  break the digit run under bidi reordering.
+% -------------------------------------------------------
+
+\newcommand{\num}[1]{\LRE{#1}}
+\newcommand{\pct}[1]{٪\LRE{#1}}
+
+% Inline code / identifier, always set left-to-right.
+\newcommand{\kd}[1]{\lr{\texttt{#1}}}
+
+% -------------------------------------------------------
+%  Sectioning: this report has no chapters; the eight
+%  top-level divisions are plain sections numbered 1..12.
+% -------------------------------------------------------
+
+\renewcommand{\thesection}{\arabic{section}}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{1}
+
+% -------------------------------------------------------
+%  Tighter leading: this is a short review report, not a
+%  thesis, so the template's thesis-grade spacing is
+%  scaled back to keep it within the required length.
+% -------------------------------------------------------
+
+\renewcommand{\baselinestretch}{1.20}
+\linespread{1.30}
+\setlength{\parskip}{0.28em}
+\newgeometry{margin=0.87in,bottom=0.92in,footskip=.4in}
+
+% -------------------------------------------------------
+%  Footnotes
+%  * \makesavenoteenv lets \footnote inside a float reach
+%    the bottom of the page (needs xepersian loaded first).
+%  * The footnote block itself is set left-to-right and flush
+%    left, with a Latin marker, because every footnote in this
+%    report holds an English term. \pn{} forces the LTR layout
+%    even for notes captured inside a float.
+% -------------------------------------------------------
+
+\makesavenoteenv{table}
+\makesavenoteenv{figure}
+
+\makeatletter
+\@RTL@footnotefalse
+\newcommand{\pn}[1]{\bgroup\@RTLfalse\footnote{\lr{#1}}\egroup}
+\long\def\pn@makefntext#1{\parindent\z@\noindent
+  \hb@xt@11pt{\hss\resetlatinfont\@makefnmark}#1}
+\AtBeginDocument{\let\@makefntext\pn@makefntext}
+\makeatother
+\leftfootnoterule
+
+% Let floats pack onto text pages instead of leaving large gaps.
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.92}
+\setcounter{topnumber}{4}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+
+% -------------------------------------------------------
+%  Float spacing. common.tex zeroes \intextsep, which glues a
+%  table or figure to the paragraph above it. A small value gives
+%  the float some air above its caption/image when it sits inside
+%  the text, while floats that land at the top or bottom of a page
+%  keep using \textfloatsep and gain nothing extra.
+% -------------------------------------------------------
+
+\setlength{\intextsep}{0.7em plus 2pt minus 3pt}

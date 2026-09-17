@@ -2,6 +2,9 @@
 
 Comprehensive experimental results on the ARM Zephyr ELF embedded malware dataset across **18 distinct configurations** spanning **VGG16** and **ResNet50** architectures, evaluated with a stratified 80% train / 20% validation split over 20 epochs.
 
+> **Evaluation protocol note.** The accuracy, macro-F1, MCC, per-class and confusion-matrix figures in this file are computed over the **entire** dataset, which includes the 80% the model was trained on. They are therefore a weighted mix of memorisation and generalisation: for ResNet50/S3 the reported 76.12% is exactly `0.8 x 78.11 + 0.2 x 68.14`. The held-out-only numbers for that run are **68.14%** accuracy, **0.6875** macro-F1 and **0.6043** MCC. Read the tables below as relative rankings, and use the held-out figures for any absolute claim.
+
+
 ---
 
 ## 1. Complete Configuration Benchmark
@@ -56,8 +59,6 @@ Comprehensive experimental results on the ARM Zephyr ELF embedded malware datase
 ---
 
 ### Related Benchmarks & Documentation:
-- [Next: Optimized 6-Class Benchmark (79.9% / 91.3% Acc)](results_arm_zephyr_optimized.md)
-- [Comprehensive Evolutionary Technical Report](comprehensive_study_report.md)
-- [PPM Ablation Study Report](ppm_ablation_analysis.md)
+- [Next: Optimized 6-Class Benchmark](results_arm_zephyr_optimized.md)
 - [Back to README](../README.md)
 

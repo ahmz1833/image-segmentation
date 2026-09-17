@@ -51,13 +51,13 @@ Dataset metadata is decoupled into configuration files under `src/malware_segmen
 - **Label Smoothing Regularization**: `"label_smoothing": 0.05` to prevent overconfidence
 - **Training Epochs**: `"epochs": 30`
 - **rodata-Centric Multi-Scale Channels**: Combines global macro structure (`S3_1024`), narrow layout (`S1`), and payload-rich firmware sections (`.rodata`, `.data`, `.initlevel`, `device_area`).
-- **Benchmark Performance**: **79.87% 6-Class Accuracy** / **91.32% Merged Driver Accuracy** (ResNet50 S3).
+- **Benchmark Performance**: **79.87% 6-Class Accuracy** / **91.32% Merged Driver Accuracy** (ResNet50 S3), measured over the full dataset. On the held-out 20% split alone the same run scores **65.26%** accuracy, **0.6084** macro-F1 and **78.44%** merged accuracy. See the evaluation-protocol note below.
 
 ### 4. ARM Zephyr Optimized with PPM (`src/malware_segmentation/configs/arm_zephyr_optimized_ppm.json`) - *Ablation Study*
 - Everything in `arm_zephyr_optimized` PLUS:
 - **Pyramid Pooling Module (PPM)**: `"use_ppm": true` (Multi-scale spatial pooling across $1\times 1, 2\times 2, 3\times 3, 6\times 6$ bins)
 - **On-The-Fly Texture Filter Permutations**: Includes `S3_raw_lbp_gabor` (Raw + LBP + Gabor), `S5_imgs1024_rodata_lbp`, `S5_imgs1024_rodata_gabor`, and 4-channel hybrid `S5_imgs1024_rodata_lbp_gabor_4_channels` computed in memory with **zero dataset changes**.
-- *Note: As proven in our [PPM Ablation Study](docs/ppm_ablation_analysis.md), PPM degrades binary classification by breaking spatial translation invariance. Use `arm_zephyr_optimized` for production.*
+- *Note: this configuration is kept for the ablation record only. The PPM head as implemented here collapses accuracy to 14-25% and also fails to fit the training set, so it is an optimization/implementation failure rather than evidence against pyramid pooling itself. Use `arm_zephyr_optimized` for production.*
 
 To inspect supported channel configurations for any dataset:
 ```bash
@@ -225,14 +225,12 @@ We conducted an extensive empirical study on **27,571 ARM Zephyr RTOS ELF firmwa
 ### 3. Key Research Insights
 - **The BYOVD Phenomenon**: Bring Your Own Vulnerable Driver (`byovd_like`) samples are physically legitimate peripheral drivers with subtle CVEs. In static analysis, their ELF layouts mirror `benign` firmware (66.8% cross-prediction, but <1% misclassification to other families). Grouping them into a vulnerable/benign driver baseline yields **91.32% Accuracy** and **0.9127 Macro-F1**.
 - **The Discriminative Power of `.rodata`**: In embedded RTOS binaries, `.text` code is 80%+ shared kernel logic, whereas strings and constants in `.rodata` contain critical malware indicators. Section configurations pairing global layout (`imgs-1024`) with `.rodata` and initialized `.data` achieved **78.70% accuracy**.
-- **Pyramid Pooling Module (PPM) Ablation**: Integrating PPM caused an accuracy collapse from ~80% down to 14–24% (near-random guessing) due to destruction of spatial translation invariance across dynamically linked ELF sections and gradient shattering from 4.2M uncalibrated parameters. Global Average Pooling (GAP) is mathematically and empirically superior.
+- **Pyramid Pooling Module (PPM) Ablation**: Adding the PPM head collapsed accuracy to 14-25% across every configuration. Training accuracy also stalls below 25%, so this is a failure to fit rather than a failure to generalize. Two implementation causes are visible in `models.py`: each pyramid branch ends in another `AdaptiveAvgPool2d(1)`, which averages away the very multi-scale spatial information a PPM is meant to preserve (PSPNet instead upsamples and concatenates spatially); and the head adds ~4.19M randomly initialized convolution parameters trained at lr=0.01 with weight decay 6e-3 on top of a pretrained backbone. Global Average Pooling remains the right default here.
 
 ### 4. Technical Reports & Detailed Benchmarks
-- 📄 **[Full Evolutionary Technical Report](docs/comprehensive_study_report.md)**: End-to-end 3-phase journey from initial runs to 91.3% accuracy, mathematical formulations, and hardware profiles.
-- 📊 **[Optimized 6-Class Benchmark](docs/results_arm_zephyr_optimized.md)**: Full 21-model metrics table, confusion matrices, and per-class reports.
-- 🔬 **[PPM Ablation Study](docs/ppm_ablation_analysis.md)**: Theoretical and empirical breakdown of why PPM degrades binary classification.
-- 📈 **[Phase 2 Pure Malware Benchmark (5 Classes)](docs/results_arm_zephyr.md)**: 18-model benchmark excluding benign binaries.
-- 🏆 **[BIG 2015 PE Benchmark](docs/results.md)**: Microsoft BIG 2015 paper reproduction results.
+- **[Optimized 6-Class Benchmark](docs/results_arm_zephyr_optimized.md)**: Full 21-model metrics table, confusion matrices, and per-class reports.
+- **[Phase 2 Pure Malware Benchmark (5 Classes)](docs/results_arm_zephyr.md)**: 18-model benchmark excluding benign binaries.
+- **[BIG 2015 PE Benchmark](docs/results.md)**: Microsoft BIG 2015 paper reproduction results.
 
 ---
 

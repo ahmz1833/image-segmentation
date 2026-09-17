@@ -1,0 +1,54 @@
+%--------------------------------------------------------------------------
+%
+%  IoT Lab - Phase 3 & 4 Report
+%  Critical review, reproduction and extension of:
+%  "Malware Classification Based on Image Segmentation" (Wanhu Nie, 2024)
+%  By: Amirhossein MohammadZadeh, Kasra Montazeri, Amirmahdi Tahmasebi
+%
+%--------------------------------------------------------------------------
+
+\documentclass[oneside,a4paper,10pt]{report}
+
+\input{styles/common.tex}
+\input{styles/custom.tex}
+
+\begin{document}
+
+% -------------------- Front Pages --------------------
+
+\input{front/info}
+\pagestyle{empty}
+
+\input{front/template/title}
+
+\pagestyle{plain}
+\pagenumbering{arabic}
+
+\tableofcontents
+\clearpage
+
+% -------------------- Part I: the paper -------------------
+
+\input{chapters/sec1_identity}
+\input{chapters/sec2_problem}
+\input{chapters/sec3_method}
+\input{chapters/sec4_testbed}
+\input{chapters/sec5_dataset}
+\input{chapters/sec6_evaluation}
+\input{chapters/sec7_critique}
+
+% -------------------- Part II: our work -------------------
+
+\input{chapters/sec8_reproduction}
+\input{chapters/sec9_arm}
+\input{chapters/sec10_phase4}
+\input{chapters/sec11_reassessment}
+\input{chapters/sec12_conclusion}
+
+% -------------------- Bibliography --------------------
+
+\input{bibs/bibs}
+
+% -------------------- The End! --------------------
+
+\end{document}

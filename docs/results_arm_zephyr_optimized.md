@@ -2,6 +2,9 @@
 
 Comprehensive experimental results on the ARM Zephyr ELF embedded malware dataset across **21 distinct configurations** spanning **VGG16** and **ResNet50** architectures on the 6-class dataset (including `benign` + 5 malware families: `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like` totaling 27,571 samples).
 
+> **Evaluation protocol note.** The accuracy, macro-F1, MCC, per-class and confusion-matrix figures in this file are computed over the **entire** dataset, which includes the 80% the model was trained on. They are therefore a weighted mix of memorisation and generalisation: for ResNet50/S3 the reported 79.87% is exactly `0.8 x 83.52 + 0.2 x 65.26`. The held-out-only numbers for the best run are **65.26%** accuracy, **0.6084** macro-F1, **0.5891** MCC and **78.44%** merged accuracy. Read the tables below as relative rankings, and use the held-out figures for any absolute claim.
+
+
 This benchmark incorporates the three key improvements:
 1. **Cosine Annealing Learning Rate Scheduling** (`CosineAnnealingLR`, $T_{\max}=30$, $\eta_{\min}=10^{-5}$)
 2. **Label Smoothing Regularization** ($\epsilon = 0.05$)
@@ -117,8 +120,6 @@ VGG16 fine-tuning under Cosine Annealing settled smoothly into a low loss platea
 ---
 
 ### Related Benchmarks & Documentation:
-- [PPM Architectural Ablation Study (Why PPM Fails)](ppm_ablation_analysis.md)
-- [Comprehensive Evolutionary Technical Report](comprehensive_study_report.md)
 - [Phase 2 Pure Malware Benchmark (5 Classes)](results_arm_zephyr.md)
 - [BIG 2015 PE Benchmark](results.md)
 - [Back to README](../README.md)
