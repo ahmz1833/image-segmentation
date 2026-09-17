@@ -52,3 +52,12 @@ Comprehensive experimental results on the ARM Zephyr ELF embedded malware datase
   - **`rootkit_like`**: **74.3% Precision**, **73.4% Recall**, **73.8% F1-score**.
   - **`backdoor_like`**: **62.6% Precision**, **83.3% Recall**, **71.5% F1-score**.
   - **Overall Accuracy**: **76.12%**, **Macro F1**: **76.80%**, **Support**: 25,970 samples.
+
+---
+
+### Related Benchmarks & Documentation:
+- [Next: Optimized 6-Class Benchmark (79.9% / 91.3% Acc)](results_arm_zephyr_optimized.md)
+- [Comprehensive Evolutionary Technical Report](comprehensive_study_report.md)
+- [PPM Ablation Study Report](ppm_ablation_analysis.md)
+- [Back to README](../README.md)
+

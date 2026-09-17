@@ -43,19 +43,21 @@ Dataset metadata is decoupled into configuration files under `src/malware_segmen
 - **Classes (5)**: `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like` (25,970 malware samples across 5 families, excluding `benign`)
 - **Sections**: `text` (code), `rodata` (constants), `data` (initialized data, aliased from `datas`), `rom_start` (ARM Cortex-M vector table), `initlevel`, `device_area`, `sw_isr_table`, `device_api_area`, `device_states`
 
-### 3. ARM Zephyr Optimized (`src/malware_segmentation/configs/arm_zephyr_optimized.json`)
+### 3. ARM Zephyr Optimized (`src/malware_segmentation/configs/arm_zephyr_optimized.json`) - *Recommended / Production*
 - **Format**: Linux ELF (`firmware.elf`)
-- **Classes (6)**: `benign`, `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like`
+- **Classes (6)**: `benign`, `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like` (27,571 samples)
 - **Inverse-Frequency Balanced Sampling**: `"weighted_sampling": true` via PyTorch `WeightedRandomSampler`
 - **Cosine Annealing LR**: `"scheduler_type": "cosine"` (`CosineAnnealingLR(T_max=epochs, eta_min=1e-5)`)
 - **Label Smoothing Regularization**: `"label_smoothing": 0.05` to prevent overconfidence
 - **Training Epochs**: `"epochs": 30`
 - **rodata-Centric Multi-Scale Channels**: Combines global macro structure (`S3_1024`), narrow layout (`S1`), and payload-rich firmware sections (`.rodata`, `.data`, `.initlevel`, `device_area`).
+- **Benchmark Performance**: **79.87% 6-Class Accuracy** / **91.32% Merged Driver Accuracy** (ResNet50 S3).
 
-### 4. ARM Zephyr Optimized with PPM (`src/malware_segmentation/configs/arm_zephyr_optimized_ppm.json`) - *Recommended*
+### 4. ARM Zephyr Optimized with PPM (`src/malware_segmentation/configs/arm_zephyr_optimized_ppm.json`) - *Ablation Study*
 - Everything in `arm_zephyr_optimized` PLUS:
 - **Pyramid Pooling Module (PPM)**: `"use_ppm": true` (Multi-scale spatial pooling across $1\times 1, 2\times 2, 3\times 3, 6\times 6$ bins)
 - **On-The-Fly Texture Filter Permutations**: Includes `S3_raw_lbp_gabor` (Raw + LBP + Gabor), `S5_imgs1024_rodata_lbp`, `S5_imgs1024_rodata_gabor`, and 4-channel hybrid `S5_imgs1024_rodata_lbp_gabor_4_channels` computed in memory with **zero dataset changes**.
+- *Note: As proven in our [PPM Ablation Study](docs/ppm_ablation_analysis.md), PPM degrades binary classification by breaking spatial translation invariance. Use `arm_zephyr_optimized` for production.*
 
 To inspect supported channel configurations for any dataset:
 ```bash
@@ -63,9 +65,9 @@ To inspect supported channel configurations for any dataset:
 malware-seg configs vgg16
 malware-seg configs resnet50
 
-# ARM Zephyr ELF (Optimized with PPM)
-malware-seg configs vgg16 --dataset arm_zephyr_optimized_ppm
-malware-seg configs resnet50 --dataset arm_zephyr_optimized_ppm
+# ARM Zephyr ELF (Optimized Production)
+malware-seg configs vgg16 --dataset arm_zephyr_optimized
+malware-seg configs resnet50 --dataset arm_zephyr_optimized
 ```
 
 ---
@@ -153,8 +155,8 @@ Each instance executes an assigned experiment preset:
 | **Instance 4** | **Multi-Channel (4 & 5 Channels - ResNet50)**<br>• ResNet50 only<br>• `S4 4-ch (raw)`, `S4 4-ch (rom_start)`, `S5 4-ch`, `S5 5-ch` | `malware-seg kaggle -i 4 --dataset arm_zephyr -e 20 -b 32` |
 
 ### Dataset & Optimization Options:
-- **`--dataset arm_zephyr_optimized_ppm`** (*Recommended*): 6 classes (including `benign`). Automatically enables Pyramid Pooling Module (**PPM**), weighted sampling, cosine annealing LR scheduling, label smoothing (0.05), and supports all rodata and on-the-fly texture channels (`S3_raw_lbp_gabor`, `S5_imgs1024_rodata_lbp`, etc.).
-- **`--dataset arm_zephyr_optimized`**: 6 classes (including `benign`), standard pooling, weighted sampling, cosine annealing, label smoothing.
+- **`--dataset arm_zephyr_optimized`** (*Recommended / Production*): 6 classes (including `benign`, 27,571 samples), standard global average pooling, weighted sampling, cosine annealing LR scheduling, label smoothing (0.05), and supports all rodata and multi-scale channels.
+- **`--dataset arm_zephyr_optimized_ppm`** (*Ablation Study*): 6 classes with Pyramid Pooling Module (**PPM**) enabled after the CNN backbone, and support for on-the-fly texture permutations (`S3_raw_lbp_gabor`, `S5_imgs1024_rodata_lbp`, etc.).
 - **`--dataset arm_zephyr_weighted`**: 6 classes (including `benign`) with inverse-frequency weighted random sampling.
 - **`--dataset arm_zephyr`**: 5 pure malware families (`backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like`). `benign` samples are filtered out on load without modifying files.
 - **`--ppm` / `--no-ppm`**: CLI flag to force enable or disable Pyramid Pooling Module (PPM) after the CNN backbone.
@@ -164,11 +166,11 @@ Each instance executes an assigned experiment preset:
 
 Alternatively, you can run directly via the shorthand runner script:
 ```bash
-# Run PPM-optimized training on Kaggle Instance 1:
-python kaggle_runner.py -i 1 --dataset arm_zephyr_optimized_ppm
+# Run production-optimized training on Kaggle Instance 1:
+python kaggle_runner.py -i 1 --dataset arm_zephyr_optimized
 
-# Or customize flags explicitly:
-python kaggle_runner.py -i 2 --dataset arm_zephyr_optimized_ppm --ppm --scheduler cosine --label-smoothing 0.05
+# Or run the PPM ablation study on Instance 1:
+python kaggle_runner.py -i 1 --dataset arm_zephyr_optimized_ppm
 ```
 
 ---
@@ -196,6 +198,41 @@ Paper training hyper-parameters (Table 4 of Nie et al.):
 |---|---:|---:|---:|---|---:|---:|
 | VGG16 | 20 | 8 | 0.001 | None | 0.0005 | 0.9 |
 | ResNet50 | 15 | 64 | 0.01 | Exponential decay ($\gamma=0.9$) | 0.006 | 0.9 |
+
+## ARM Zephyr Embedded Benchmark Results & Visualizations
+
+We conducted an extensive empirical study on **27,571 ARM Zephyr RTOS ELF firmware binaries** across 6 classes (`benign` + 5 malware families: `backdoor_like`, `byovd_like`, `geofencing_like`, `logic_bomb_like`, `rootkit_like`) evaluating 58 models across four iterative phases:
+
+### 1. Top Performing Configurations (Phase 3 Optimized)
+
+| Model | Representation / Channels | 6-Class Acc | Macro-F1 | MCC | Merged Acc (Benign+BYOVD Driver Baseline) | Latency | FPS |
+|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **ResNet50** | **S3 (Raw 1024-width)** | **79.87%** | **0.7509** | **0.7691** | **91.32%** | 1.86 ms | 537.6 |
+| **ResNet50** | **S5 (`imgs-1024` + `.rodata` + `.data`)** | **78.70%** | **0.7386** | **0.7558** | **90.36%** | 1.72 ms | 581.4 |
+| **ResNet50** | **S5 4-Channel (`imgs-1024` + `.rodata` + `.data` + `.initlevel`)** | **78.43%** | **0.7388** | **0.7500** | **89.57%** | 1.86 ms | 537.6 |
+| **ResNet50** | **S5 4-Channel (`imgs-1024` + `.text` + `.rodata` + `.data`)** | **77.88%** | **0.7346** | **0.7388** | **88.51%** | 1.97 ms | 507.6 |
+| **ResNet50** | **S5 5-Channel (`imgs-1024` + `.text` + `.rodata` + `.data` + `.rom_start`)** | **77.22%** | **0.7273** | **0.7321** | **88.17%** | 2.39 ms | 418.4 |
+| **VGG16** | **S5 (`imgs-1024` + `.rodata` + `.data`)** | **75.30%** | **0.7141** | **0.7068** | **85.42%** | 3.15 ms | 317.5 |
+
+### 2. Best Model Diagnostics (ResNet50 S3: 79.87% / 91.32%)
+
+| Training & Validation Loss/Accuracy Curves | Normalized & Raw Confusion Matrix |
+|:---:|:---:|
+| ![ResNet50 S3 Training Curves](docs/assets/arm-resnet50-s3-curves.png) | ![ResNet50 S3 Confusion Matrix](docs/assets/arm-resnet50-s3-confusion.png) |
+
+![ResNet50 S3 Per-Class Performance Breakdown](docs/assets/arm-resnet50-s3-metrics.png)
+
+### 3. Key Research Insights
+- **The BYOVD Phenomenon**: Bring Your Own Vulnerable Driver (`byovd_like`) samples are physically legitimate peripheral drivers with subtle CVEs. In static analysis, their ELF layouts mirror `benign` firmware (66.8% cross-prediction, but <1% misclassification to other families). Grouping them into a vulnerable/benign driver baseline yields **91.32% Accuracy** and **0.9127 Macro-F1**.
+- **The Discriminative Power of `.rodata`**: In embedded RTOS binaries, `.text` code is 80%+ shared kernel logic, whereas strings and constants in `.rodata` contain critical malware indicators. Section configurations pairing global layout (`imgs-1024`) with `.rodata` and initialized `.data` achieved **78.70% accuracy**.
+- **Pyramid Pooling Module (PPM) Ablation**: Integrating PPM caused an accuracy collapse from ~80% down to 14–24% (near-random guessing) due to destruction of spatial translation invariance across dynamically linked ELF sections and gradient shattering from 4.2M uncalibrated parameters. Global Average Pooling (GAP) is mathematically and empirically superior.
+
+### 4. Technical Reports & Detailed Benchmarks
+- 📄 **[Full Evolutionary Technical Report](docs/comprehensive_study_report.md)**: End-to-end 3-phase journey from initial runs to 91.3% accuracy, mathematical formulations, and hardware profiles.
+- 📊 **[Optimized 6-Class Benchmark](docs/results_arm_zephyr_optimized.md)**: Full 21-model metrics table, confusion matrices, and per-class reports.
+- 🔬 **[PPM Ablation Study](docs/ppm_ablation_analysis.md)**: Theoretical and empirical breakdown of why PPM degrades binary classification.
+- 📈 **[Phase 2 Pure Malware Benchmark (5 Classes)](docs/results_arm_zephyr.md)**: 18-model benchmark excluding benign binaries.
+- 🏆 **[BIG 2015 PE Benchmark](docs/results.md)**: Microsoft BIG 2015 paper reproduction results.
 
 ---
 

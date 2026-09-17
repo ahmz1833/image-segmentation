@@ -67,6 +67,24 @@ Tracking the training loss across all 30 epochs reveals exactly what occurred in
 | **22** | 0.8937 | 68.17% | 1.7789 | 20.38% | Standard model enters deep minimum |
 | **25** | 0.7659 | 73.46% | 1.7698 | 20.71% | PPM barely moves |
 | **30** | **0.5889** | **82.42%** | **1.7200** | **24.94%** | **Complete convergence failure in PPM** |
+ 
+### Visual Proof of Convergence Failure
+ 
+#### Training Loss & Accuracy Dynamics (PPM vs. Standard GAP):
+The contrast between standard Global Average Pooling and the Pyramid Pooling Module is dramatic:
+- **ResNet50 S3 + PPM (Convergence Trapping)**: The loss plateaus at $\approx 1.78$ and never escapes, oscillating helplessly around random guessing.
+- **ResNet50 S3 Standard (Stable Descent)**: Monotonic convergence with loss decreasing smoothly from 1.77 down to 0.58, reaching ~80% validation accuracy.
+
+| Pyramid Pooling Module (PPM) Failure | Standard Global Average Pooling (Winning Baseline) |
+|:---:|:---:|
+| ![ResNet50 S3 with PPM Training Curves (Failure)](assets/arm-ppm-resnet50-s3-curves.png) | ![Standard ResNet50 S3 Training Curves (Optimal)](assets/arm-resnet50-s3-curves.png) |
+
+#### Confusion Matrix Comparison (PPM Collapse vs. Discrimination):
+Under PPM, the classifier collapses into predicting arbitrary majority labels without discrimination, while the standard model exhibits sharp diagonal dominance:
+
+| ResNet50 S3 with PPM Confusion Matrix (Collapse) | Standard ResNet50 S3 Confusion Matrix (Diagonal Dominance) |
+|:---:|:---:|
+| ![ResNet50 S3 with PPM Confusion Matrix](assets/arm-ppm-resnet50-s3-confusion.png) | ![Standard ResNet50 S3 Confusion Matrix](assets/arm-resnet50-s3-confusion.png) |
 
 ---
 
@@ -113,3 +131,13 @@ When presenting this to your TA or professor, use the following framing:
 
 1. **Retain the Winning Baseline**: Use the results from **`results-new-optimzed`** (**79.87% 6-class / 91.32% merged accuracy**) as your primary reported benchmark.
 2. **Include PPM as an Official Ablation Study**: Include this exact ablation table and theoretical discussion in your thesis/paper under *"Section 5.X: Architectural Ablation — The Effect of Pyramid Context Pooling"*. It proves thoroughness, scientific rigor, and deep understanding of convolutional inductive biases.
+
+---
+
+### Related Documentation & Benchmarks:
+- [Optimized ARM Zephyr Benchmark (79.9% / 91.3% Acc)](results_arm_zephyr_optimized.md)
+- [Comprehensive Evolutionary Technical Report](comprehensive_study_report.md)
+- [Phase 2 Pure Malware Benchmark (5 Classes)](results_arm_zephyr.md)
+- [BIG 2015 PE Benchmark](results.md)
+- [Back to README](../README.md)
+

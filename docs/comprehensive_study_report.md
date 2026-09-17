@@ -194,6 +194,8 @@ In Phase 2, VGG16 was severely trailing ResNet50 (scoring ~50% vs ResNet50's ~75
 - `vgg16 / S2`: **75.24%** (85.33% merged).
 - `vgg16 / S3`: **75.19%** (85.41% merged).
 
+![VGG16 S5 rodata+data Training Curves](assets/arm-vgg16-s5-rodata-data-curves.png)
+
 **Root Cause Analysis**:
 VGG16's large parameter footprint (138 million weights, with 120M in the classifier heads) requires prolonged fine-tuning with very low terminal learning rates. The exponential decay schedule in Phase 2 reduced LR too rapidly in early epochs, freezing the convolutional filters before they could adapt to firmware grayscale textures. Cosine Annealing maintained higher learning rates during middle epochs to break out of local minima, then cleanly lowered LR down to $10^{-5}$ to settle the dense layers into deep loss minima.
 
@@ -205,6 +207,8 @@ In Phase 3, the per-class metrics on ResNet50 S3 showed:
 - `geofencing_like`: **93.5% Precision, 85.5% Recall, 0.894 F1**
 - `benign`: **27.8% Precision, 87.3% Recall, 0.421 F1**
 - `byovd_like`: **75.9% Precision, 31.0% Recall, 0.440 F1**
+
+![ResNet50 S3 Per-Class Performance Metrics](assets/arm-resnet50-s3-metrics.png)
 
 Analyzing the full confusion matrix explains this specific interaction:
 
@@ -219,6 +223,8 @@ logic_bomb_like        104      42     14          56       4,793      176    5,
 rootkit_like           170     185    114          88         113    5,376    6,046
 ```
 
+![ResNet50 S3 Confusion Matrix](assets/arm-resnet50-s3-confusion.png)
+
 #### The Cyber-Physical Explanation of BYOVD:
 1. **Nature of the Attack**: In "Bring Your Own Vulnerable Driver" attacks, the attacker does **not compile custom malware**. They deploy a **legitimate, signed, validly functioning vendor hardware driver** that contains a known CVE vulnerability.
 2. **Static ELF Equivalence**: Because the driver is a legitimate Zephyr peripheral driver, its ELF section layout, initialization handlers, and device driver structs are **95%+ indistinguishable from benign firmware**.
@@ -232,11 +238,33 @@ The newly introduced channels confirmed the hypothesis that pairing **global str
 - `S5_imgs1024_text_rodata_data_4_channels` (4 Channels): **77.88%** 6-class / **88.51%** merged.
 - `S5_imgs1024_text_rodata_data_romstart_5_channels` (5 Channels): **77.22%** 6-class / **88.17%** merged.
 
+![ResNet50 S5 rodata+data Training Curves](assets/arm-resnet50-s5-rodata-data-curves.png)
+![ResNet50 S5 rodata+data Confusion Matrix](assets/arm-resnet50-s5-rodata-data-confusion.png)
+![ResNet50 4-Channel Initlevel Confusion Matrix](assets/arm-resnet50-4ch-initlevel-confusion.png)
+
 In all cases, retaining `imgs-1024` in Channel 0 provides the convolutional filters with the macroscopic binary roadmap, while Channels 1 through 4 provide section-level microscopic textures.
 
 ---
 
-## 7. Inference Latency & System Throughput
+## 7. Architectural Ablation: Pyramid Pooling Module (PPM) Failure
+
+Following an external research recommendation, a **Pyramid Pooling Module (PPM)** ($1\times 1, 2\times 2, 3\times 3, 6\times 6$ bins) was evaluated across all 21 models under identical training conditions. As detailed in the dedicated [PPM Ablation Study Report](ppm_ablation_analysis.md):
+
+- **Outcome**: PPM led to an immediate collapse in convergence, reducing 6-class accuracy from **79.87% down to 14.29%** on ResNet50 S3 and causing the training loss to stall at a random guessing saddle point ($\mathcal{L} \approx 1.78$).
+- **Scientific Root Causes**:
+  1. *Loss of Spatial Translation Invariance*: Unlike semantic segmentation where objects reside in fixed spatial relations, binary linker offsets dynamically shift functions. Rigid sub-grid pooling destroys spatial translation invariance.
+  2. *Gradient Shattering*: Inserting 4.2M uncalibrated parameters between the pre-trained backbone and the classifier sent high-variance noise into early feature extractors.
+  3. *Inference Overhead*: PPM nearly doubled training epoch time (5.5h to ~10h per instance) without empirical benefit.
+
+| ResNet50 S3 with PPM (Collapse at Loss ~1.78) | ResNet50 S3 Standard GAP (Winning Model: 79.9% / 91.3%) |
+|:---:|:---:|
+| ![ResNet50 S3 PPM Training Curves](assets/arm-ppm-resnet50-s3-curves.png) | ![ResNet50 S3 Standard Curves](assets/arm-resnet50-s3-curves.png) |
+
+This ablation provides conclusive evidence that **Global Average Pooling (GAP)** remains the mathematically superior pooling head for binary-as-image classification.
+
+---
+
+## 8. Inference Latency & System Throughput
 
 Benchmarks measured on dedicated NVIDIA GPUs (Kaggle P100 / T4) demonstrate high throughput suitable for real-time firmware analysis:
 
@@ -249,7 +277,8 @@ ResNet50 delivers **1.64x higher inference throughput** and requires **44% less 
 
 ---
 
-## 8. Summary of Milestones & Deliverables
+
+## 9. Summary of Milestones & Deliverables
 
 1. **Self-Contained Kaggle Pipeline**:
    - Packaged all sources, dependencies, and configuration JSONs into a base64-encoded, self-extracting single-file notebook ([`kaggle_train.ipynb`](file:///home/ahmz/Personal/iot/image-segmentation/kaggle_train.ipynb)) with zero manual script setup.

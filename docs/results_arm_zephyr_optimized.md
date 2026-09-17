@@ -52,6 +52,8 @@ This benchmark incorporates the three key improvements:
 | **Macro Average** | 79.26% | 79.26% | **0.7509** | 27,571 |
 | **Weighted Average** | 86.36% | 79.87% | 0.8066 | 27,571 |
 
+![ResNet50 S3 Per-Class Performance Metrics](assets/arm-resnet50-s3-metrics.png)
+
 ---
 
 ## 3. Confusion Matrix Analysis & The BYOVD Phenomenon
@@ -69,6 +71,8 @@ rootkit_like               170     185         114               88             
 Total                     5526    5030        1816             4250             5056          5893   27,571
 ```
 
+![ResNet50 S3 Confusion Matrix (Counts and Normalized)](assets/arm-resnet50-s3-confusion.png)
+
 ### Key Insights:
 1. **Complete Elimination of Minority Class Starvation**:
    - `benign` recall surged to **87.26%** (previously 0% in unweighted runs).
@@ -84,3 +88,38 @@ Total                     5526    5030        1816             4250             
 3. **VGG16 Massive Rebound**:
    - In previous unoptimized runs, VGG16 was severely underfitted at ~43–50% accuracy.
    - With Cosine Annealing and inverse-frequency weighted sampling, VGG16 jumped to **75.30% accuracy** (+24.5% absolute gain) and **85.42% merged accuracy**.
+
+---
+
+## 4. Visualizations & Training Diagnostics
+
+### A. ResNet50 S3: Optimal Convergence
+The smooth learning rate decay of Cosine Annealing combined with label smoothing prevented gradient explosions and produced clean, monotonically decreasing loss curves:
+
+![ResNet50 S3 Training and Validation Loss/Accuracy Curves](assets/arm-resnet50-s3-curves.png)
+
+### B. ResNet50 S5 (`imgs-1024` + `.rodata` + `.data`)
+The top-performing multi-section model (78.70% 6-class / 90.36% merged accuracy) demonstrates rapid feature extraction on the critical `.rodata` string table:
+
+![ResNet50 S5 rodata+data Training Curves](assets/arm-resnet50-s5-rodata-data-curves.png)
+![ResNet50 S5 rodata+data Confusion Matrix](assets/arm-resnet50-s5-rodata-data-confusion.png)
+
+### C. ResNet50 S5 4-Channel (`imgs-1024` + `.rodata` + `.data` + `.initlevel`)
+Extending the tensor to 4 channels with Zephyr's boot priority levels (`.initlevel`) yielded 78.43% accuracy:
+
+![ResNet50 4-Channel Initlevel Confusion Matrix](assets/arm-resnet50-4ch-initlevel-confusion.png)
+
+### D. VGG16 Convergence Rebound
+VGG16 fine-tuning under Cosine Annealing settled smoothly into a low loss plateau, proving that large parameter backbones can succeed on embedded binary images when properly regularized:
+
+![VGG16 S5 rodata+data Training Curves](assets/arm-vgg16-s5-rodata-data-curves.png)
+
+---
+
+### Related Benchmarks & Documentation:
+- [PPM Architectural Ablation Study (Why PPM Fails)](ppm_ablation_analysis.md)
+- [Comprehensive Evolutionary Technical Report](comprehensive_study_report.md)
+- [Phase 2 Pure Malware Benchmark (5 Classes)](results_arm_zephyr.md)
+- [BIG 2015 PE Benchmark](results.md)
+- [Back to README](../README.md)
+
